@@ -1,5 +1,5 @@
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, ConversationHandler
-from settings import TG_TOKEN, TG_API_URL
+from settings import TG_TOKEN
 from telegram import ReplyKeyboardRemove, ReplyKeyboardMarkup
 
 def start(bot, update):
@@ -30,7 +30,7 @@ def anketa(bot, update):
     bot.message.reply_text('Услуга записи пока недоступна')
 
 def main():
-    my_bot = Updater(TG_TOKEN, TG_API_URL, use_context=True)
+    my_bot = Updater(TG_TOKEN, use_context=True)
     my_bot.dispatcher.add_handler(CommandHandler('start', start))
     my_bot.dispatcher.add_handler(CommandHandler('close', close_keyboard))
     my_bot.dispatcher.add_handler(CommandHandler('adress', adress))
