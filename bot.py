@@ -1,6 +1,8 @@
 import telebot
 from settings import TG_TOKEN
 from telebot import types
+import database
+
 
 bot = telebot.TeleBot(TG_TOKEN)
 
@@ -24,22 +26,34 @@ def get_info(message):
 @bot.callback_query_handler(func = lambda call: True)
 def answer(call):
     if call.data == "yes":
-        markup_reply = types.ReplyKeyboardMarkup(resize_keyboard=True)
-        item_one = types.InlineKeyboardButton("Заполнить анкету")
-        markup_reply.add(item_one)
-        mes = bot.send_message(call.message.chat.id, "Нажмите на кнопку ('Заполнить анкету')",
-                               reply_markup=markup_reply)
-        bot.register_next_step_handler(mes, send_welcome)
+        send_welcome(call.message)
     elif call.data == "no":
         bot.send_message(call.message.chat.id, "Всего доброго!")
+    elif call.data.split()[0] == "set_service":
+        database.Database().set_service_for_user(call.from_user.id, call.data.split()[1])
+        doctors = database.Database().get_all_doctors_for_service(call.data.split()[1])
+        markup_inline = types.InlineKeyboardMarkup()
+        for doctor in doctors:
+            markup_inline.add(types.InlineKeyboardButton(text=doctor[1], callback_data=f'set_doctor {doctor[0]}'))
+        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text='Выберите доктора', reply_markup=markup_inline)
+    elif call.data.split()[0] == "set_doctor":
+        database.Database().set_doctor_for_user(call.from_user.id, call.data.split()[1])
+        data = database.Database().get_ticket(call.from_user.id)
+        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=f'Для клиента: {data["user"]}\nЗабронирована услуга: {data["service"]}\nВрач: {data["doctor"]}\nЦена: {data["price"]}\nМы вам перезвоним!')
+
 
 def send_welcome(message):
+    if database.Database().user_exist(message.from_user.id):
+        database.Database().clear_user_data(message.from_user.id)
+    else:
+        database.Database().add_user(message.from_user.id)
     mess = bot.send_message(message.chat.id, "Введите свое имя")
     bot.register_next_step_handler(mess, process_firstname_step)
 
 def process_firstname_step(message):
     try:
         user_id = message.from_user.id
+        database.Database().set_first_name_for_user(user_id, message.text)
         user_data[user_id] = User(message.text)
         mess = bot.send_message(message.chat.id, 'Введите свою фамилию')
         bot.register_next_step_handler(mess, process_secondname_step)
@@ -49,9 +63,10 @@ def process_firstname_step(message):
 def process_secondname_step(message):
     try:
         user_id = message.from_user.id
+        database.Database().set_second_name_for_user(user_id, message.text)
         user = user_data[user_id]
         user.second_name = message.text
-        mess = bot.send_message(message.chat.id, 'Введите свой возраст')
+        mess = bot.send_message(message.chat.id, 'Введите свой возраст (только число)')
         bot.register_next_step_handler(mess, process_age_step)
     except Exception as e:
         bot.reply_to(message, 'ошибка')
@@ -59,11 +74,21 @@ def process_secondname_step(message):
 def process_age_step(message):
     try:
         user_id = message.from_user.id
+        database.Database().set_age_for_user(user_id, message.text)
         user = user_data[user_id]
         user.age = message.text
-        bot.send_message(message.chat.id, "Вы успешно зарегестрированы!")
+        markup_inline = types.InlineKeyboardMarkup()
+        services = database.Database().get_all_services()
+        for service in services:
+            markup_inline.add(types.InlineKeyboardButton(text=service[1], callback_data=f'set_service {service[0]}'))
+        bot.send_message(message.chat.id, 'Выберите услугу, пожалуйста', reply_markup=markup_inline)
     except Exception as e:
         bot.reply_to(message, 'ошибка')
+
+
+
+
+
 
 # для пошагового бота
 bot.enable_save_next_step_handlers(delay=2)
