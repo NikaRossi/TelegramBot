@@ -88,11 +88,13 @@ class Database:
         doctor = f"SELECT name FROM doctors WHERE id = {record[0][0]}"
         service = f"SELECT name FROM service WHERE id = {record[0][1]}"
         price = f"SELECT price FROM service WHERE id = {record[0][1]}"
+        room = f"SELECT room FROM doctors WHERE id = {record[0][0]}"
         user = " ".join(self.__query(user, commit=False)[0])
         doctor = self.__query(doctor, commit=False)[0][0]
         service = self.__query(service, commit=False)[0][0]
         price = self.__query(price, commit=False)[0][0]
-        return {"user": user, "doctor": doctor, "service": service, "price": price}
+        room = self.__query(room, commit=False)[0][0]
+        return {"user": user, "doctor": doctor, "service": service, "price": price, "room": room}
 
 
 

@@ -14,7 +14,7 @@ class User:
         self.second_name = None
         self.age = None
 
-@bot.message_handler(commands="start")
+@bot.message_handler(commands=["start"])
 def get_info(message):
     markup_inline = types.InlineKeyboardMarkup()
     item_yes = types.InlineKeyboardButton(text= "Да", callback_data= "yes")
@@ -39,7 +39,7 @@ def answer(call):
     elif call.data.split()[0] == "set_doctor":
         database.Database().set_doctor_for_user(call.from_user.id, call.data.split()[1])
         data = database.Database().get_ticket(call.from_user.id)
-        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=f'Для клиента: {data["user"]}\nЗабронирована услуга: {data["service"]}\nВрач: {data["doctor"]}\nЦена: {data["price"]}\nМы вам перезвоним!')
+        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=f'Для клиента: {data["user"]}\nЗабронирована услуга: {data["service"]}\nВрач: {data["doctor"]}\nКабинет: {data["room"]}\nЦена: {data["price"]}\nМы вам перезвоним!')
 
 
 def send_welcome(message):
