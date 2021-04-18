@@ -39,14 +39,21 @@ def answer(call):
     elif call.data.split()[0] == "set_doctor":
         database.Database().set_doctor_for_user(call.from_user.id, call.data.split()[1])
         data = database.Database().get_ticket(call.from_user.id)
-        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=f'Для клиента: {data["user"]}\nЗабронирована услуга: {data["service"]}\nВрач: {data["doctor"]}\nКабинет: {data["room"]}\nЦена: {data["price"]}\nМы вам перезвоним!')
-
+        markup_inline = types.InlineKeyboardMarkup()
+        markup_inline.add(types.InlineKeyboardButton(text="Адрес", callback_data='get address'))
+        markup_inline.add(types.InlineKeyboardButton(text="Часы работы", callback_data='get work_time'))
+        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=f'Для клиента: {data["user"]}\nЗабронирована услуга: {data["service"]}\nВрач: {data["doctor"]}\nКабинет: {data["room"]}\nЦена: {data["price"]}\nМы вам перезвоним!', reply_markup=markup_inline)
+    elif call.data.split()[0] == 'get':
+        if call.data.split()[1] == 'address':
+            bot.send_message(call.message.chat.id, "Санкт-Петербург, Вознесенский проспект, дом 46")
+        elif call.data.split()[1] == 'work_time':
+            bot.send_message(call.message.chat.id, "Пн-пт 9:00-20:00\nСб-вс 10:00-17:00")
 
 def send_welcome(message):
-    if database.Database().user_exist(message.from_user.id):
-        database.Database().clear_user_data(message.from_user.id)
+    if database.Database().user_exist(message.chat.id):
+        database.Database().clear_user_data(message.chat.id)
     else:
-        database.Database().add_user(message.from_user.id)
+        database.Database().add_user(message.chat.id)
     mess = bot.send_message(message.chat.id, "Введите свое имя")
     bot.register_next_step_handler(mess, process_firstname_step)
 

@@ -37,6 +37,7 @@ class Database:
 
     def set_first_name_for_user(self, user_id, first_name):
         query = f"UPDATE users SET first_name = '{first_name}' WHERE id = {user_id};"
+        print(first_name, user_id)
         self.__query(query)
 
     def set_second_name_for_user(self, user_id, second_name):
