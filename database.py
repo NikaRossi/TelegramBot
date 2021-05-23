@@ -16,7 +16,7 @@ class Database:
 
     def add_user(self, user_id):
         """Добавляет пользователя в базу данных"""
-        query = f"INSERT INTO users (id, first_name, second_name, age) VALUES ({user_id}, Null, Null, Null);"
+        query = f"INSERT INTO users (id, first_name, second_name, phone) VALUES ({user_id}, Null, Null, Null);"
         self.__query(query)
 
     def user_exist(self, user_id):
@@ -37,27 +37,26 @@ class Database:
 
     def set_first_name_for_user(self, user_id, first_name):
         query = f"UPDATE users SET first_name = '{first_name}' WHERE id = {user_id};"
-        print(first_name, user_id)
         self.__query(query)
 
     def set_second_name_for_user(self, user_id, second_name):
         query = f"UPDATE users SET second_name = '{second_name}' WHERE id = {user_id};"
         self.__query(query)
 
-    def set_age_for_user(self, user_id, age):
-        query = f"UPDATE users SET age = {age} WHERE id = {user_id};"
+    def set_phone_for_user(self, user_id, phone):
+        query = f"UPDATE users SET phone = {phone} WHERE id = {user_id};"
         self.__query(query)
 
     def get_info_about_user(self, user_id):
-        query = f"SELECT first_name, second_name, age FROM users WHERE id = {user_id};"
+        query = f"SELECT first_name, second_name, phone FROM users WHERE id = {user_id};"
         record = self.__query(query, commit=False)[0]
         answer = {"first_name": record[1],
                   "second_name": record[2],
-                  "age": record[3]}
+                  "phone": record[3]}
         return answer
 
     def clear_user_data(self, user_id):
-        query = f"UPDATE users SET first_name = Null, second_name = Null, age = Null WHERE id = {user_id};"
+        query = f"UPDATE users SET first_name = Null, second_name = Null, phone = Null WHERE id = {user_id};"
         self.__query(query)
 
     def add_ticket(self, user_id):
@@ -80,6 +79,10 @@ class Database:
 
     def get_all_services(self):
         query = f"SELECT id, name FROM service"
+        return self.__query(query, commit=False)
+
+    def get_all_tickets(self):
+        query = f"SELECT user_id, id FROM ticket"
         return self.__query(query, commit=False)
 
     def get_ticket(self, user_id):

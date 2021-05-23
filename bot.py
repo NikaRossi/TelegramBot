@@ -12,7 +12,7 @@ class User:
     def __init__(self, first_name, ):
         self.first_name = first_name
         self.second_name = None
-        self.age = None
+        self.phone = None
 
 @bot.message_handler(commands=["start"])
 def get_info(message):
@@ -42,7 +42,7 @@ def answer(call):
         markup_inline = types.InlineKeyboardMarkup()
         markup_inline.add(types.InlineKeyboardButton(text="Адрес", callback_data='get address'))
         markup_inline.add(types.InlineKeyboardButton(text="Часы работы", callback_data='get work_time'))
-        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=f'Для клиента: {data["user"]}\nЗабронирована услуга: {data["service"]}\nВрач: {data["doctor"]}\nКабинет: {data["room"]}\nЦена: {data["price"]}\nМы вам перезвоним!', reply_markup=markup_inline)
+        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=f'Для клиента: {data["user"]}\nЗабронирована услуга: {data["service"]}\nВрач: {data["doctor"]}\nКабинет: {data["room"]}\nЦена: от {data["price"]} рублей\nМы вам перезвоним!', reply_markup=markup_inline)
     elif call.data.split()[0] == 'get':
         if call.data.split()[1] == 'address':
             bot.send_message(call.message.chat.id, "Санкт-Петербург, Вознесенский проспект, дом 46")
@@ -73,17 +73,17 @@ def process_secondname_step(message):
         database.Database().set_second_name_for_user(user_id, message.text)
         user = user_data[user_id]
         user.second_name = message.text
-        mess = bot.send_message(message.chat.id, 'Введите свой возраст (только число)')
-        bot.register_next_step_handler(mess, process_age_step)
+        mess = bot.send_message(message.chat.id, 'Введите свой номер телефона')
+        bot.register_next_step_handler(mess, process_phone_step)
     except Exception as e:
         bot.reply_to(message, 'ошибка')
 
-def process_age_step(message):
+def process_phone_step(message):
     try:
         user_id = message.from_user.id
-        database.Database().set_age_for_user(user_id, message.text)
+        database.Database().set_phone_for_user(user_id, message.text)
         user = user_data[user_id]
-        user.age = message.text
+        user.phone = message.text
         markup_inline = types.InlineKeyboardMarkup()
         services = database.Database().get_all_services()
         for service in services:
@@ -91,7 +91,6 @@ def process_age_step(message):
         bot.send_message(message.chat.id, 'Выберите услугу, пожалуйста', reply_markup=markup_inline)
     except Exception as e:
         bot.reply_to(message, 'ошибка')
-
 
 
 
